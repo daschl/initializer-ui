@@ -19,3 +19,7 @@ div.meta-box {
 mat-card {
     margin-bottom: 20px;
 }
+
+div.submit button {
+    background-color: #4287D6;
+}

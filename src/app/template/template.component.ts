@@ -92,7 +92,7 @@ export class TemplateComponent implements OnInit {
     this.metadata.forEach(group => {
       let g: { [key: string]: any } = {};
       group.fields.forEach(field => {
-        g[field.name] = [];
+        g[field.name] = field.defaultValue;
       })
       this.metadataForms.push(this.fb.group(g));
     });

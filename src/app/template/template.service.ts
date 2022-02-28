@@ -26,7 +26,7 @@ export class TemplateService {
   getMetadataGroups(): Observable<MetadataTemplateGroup> {
     return from([
       new MetadataTemplateGroup("credentials", [new MetadataTemplateField("username", "input")]),
-      new MetadataTemplateGroup("other", [new MetadataTemplateField("groupId", "input"), new MetadataTemplateField("artifactId", "input")])
+      new MetadataTemplateGroup("other", [new MetadataTemplateField("groupId", "input", "com.example"), new MetadataTemplateField("artifactId", "input")])
     ]);
   }
 }
@@ -85,8 +85,10 @@ export class MetadataTemplateGroup {
 export class MetadataTemplateField {
   name: string;
   type: string;
-  constructor(name: string, type: string) {
+  defaultValue?: string;
+  constructor(name: string, type: string, defaultValue?: string) {
     this.name = name;
     this.type = type;
+    this.defaultValue = defaultValue;
   }
 }
