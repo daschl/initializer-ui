@@ -21,5 +21,10 @@ mat-card {
 }
 
 div.submit button {
+    font-size: 16px;
+}
+
+div.submit button.primary {
     background-color: #4287D6;
+    margin-right: 10px;
 }
