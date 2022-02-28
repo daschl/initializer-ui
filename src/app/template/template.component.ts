@@ -26,26 +26,32 @@ export class TemplateComponent implements OnInit {
       metadata: this.fb.array([]),
     });
 
-    this.languageForms.valueChanges.subscribe(v => {
-      for (let entry of v) {
-        if (entry.entry) {
+    this.languageForms.valueChanges.subscribe(_ => {
+      for (let f of this.languageForms.controls) {
+        if (f.dirty) {
           this.projects = [];
-          this.templateService.getProjectGroups().subscribe({
+          this.templateService.getProjectGroups(f.value).subscribe({
             next: v => this.projects.push(v),
             complete: () => this.updateProjectForms(),
           });
+          f.markAsPristine();
+        } else {
+          f.reset({}, { emitEvent: false });
         }
       }
     });
 
-    this.projectForms.valueChanges.subscribe(v => {
-      for (let entry of v) {
-        if (entry.entry) {
+    this.projectForms.valueChanges.subscribe(_ => {
+      for (let f of this.projectForms.controls) {
+        if (f.dirty) {
           this.metadata = [];
-          this.templateService.getMetadataGroups().subscribe({
+          this.templateService.getMetadataGroups(f.value).subscribe({
             next: v => this.metadata.push(v),
             complete: () => this.updateMetadataForms(),
           });
+          f.markAsPristine();
+        } else {
+          f.reset({}, { emitEvent: false });
         }
       }
     });

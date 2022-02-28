@@ -31,7 +31,7 @@ export class TemplateService {
     return from(groups);
   }
 
-  getProjectGroups(): Observable<ProjectTemplateGroup> {
+  getProjectGroups(value: any): Observable<ProjectTemplateGroup> {
     let fakeData = {
       "Getting Started": [
         { "key": "hello-world", "value": "Hello World" },
@@ -53,7 +53,7 @@ export class TemplateService {
     return from(groups);
   }
 
-  getMetadataGroups(): Observable<MetadataTemplateGroup> {
+  getMetadataGroups(value: any): Observable<MetadataTemplateGroup> {
     let fakeData = {
       "credentials": [
         { "name": "username", "type": "input" },
