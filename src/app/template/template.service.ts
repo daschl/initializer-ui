@@ -10,24 +10,70 @@ export class TemplateService {
   constructor(private http: HttpClient) { }
 
   getLanguageGroups(): Observable<LanguageTemplateGroup> {
-    return from([
-      new LanguageTemplateGroup("Server & Capella", [new LanguageTemplate("java", "Java")]),
-      new LanguageTemplateGroup("Mobile", [new LanguageTemplate("c", "C")])
-    ]);
+    let fakeData = {
+      "Server & Capella": [
+        { "key": "java", "value": "Java" },
+      ],
+      "Mobile": [
+        { "key": "c", "value": "C" }
+      ]
+    };
+    let jsonIn = JSON.parse(JSON.stringify(fakeData))
+
+    let groups: LanguageTemplateGroup[] = [];
+    for (let [groupName, langs] of Object.entries(jsonIn)) {
+      let languages = [];
+      for (var lang of langs as Array<any>) {
+        languages.push(new LanguageTemplate(lang["key"], lang["value"]));
+      }
+      groups.push(new LanguageTemplateGroup(groupName, languages));
+    }
+    return from(groups);
   }
 
   getProjectGroups(): Observable<ProjectTemplateGroup> {
-    return from([
-      new ProjectTemplateGroup("Getting Started", [new ProjectTemplate("hello-world", "Hello World")]),
-      new ProjectTemplateGroup("Spring", [new ProjectTemplate("spring-boot", "Spring Boot Sample")])
-    ]);
+    let fakeData = {
+      "Getting Started": [
+        { "key": "hello-world", "value": "Hello World" },
+      ],
+      "Spring": [
+        { "key": "spring-boot", "value": "Spring Boot Sample" }
+      ]
+    };
+    let jsonIn = JSON.parse(JSON.stringify(fakeData))
+
+    let groups: ProjectTemplateGroup[] = [];
+    for (let [groupName, projs] of Object.entries(jsonIn)) {
+      let projects = [];
+      for (var project of projs as Array<any>) {
+        projects.push(new ProjectTemplate(project["key"], project["value"]));
+      }
+      groups.push(new ProjectTemplateGroup(groupName, projects));
+    }
+    return from(groups);
   }
 
   getMetadataGroups(): Observable<MetadataTemplateGroup> {
-    return from([
-      new MetadataTemplateGroup("credentials", [new MetadataTemplateField("username", "input")]),
-      new MetadataTemplateGroup("other", [new MetadataTemplateField("groupId", "input", "com.example"), new MetadataTemplateField("artifactId", "input")])
-    ]);
+    let fakeData = {
+      "credentials": [
+        { "name": "username", "type": "input" },
+      ],
+      "other": [
+        { "name": "groupId", "type": "input", "defaultValue": "com.example" },
+        { "name": "artifactId", "type": "input" },
+      ]
+    };
+    let jsonIn = JSON.parse(JSON.stringify(fakeData))
+
+    let groups: MetadataTemplateGroup[] = [];
+    for (let [groupName, meta] of Object.entries(jsonIn)) {
+      let metadata = [];
+      for (var m of meta as Array<any>) {
+        metadata.push(new MetadataTemplateField(m["name"], m["type"], m["defaultValue"]));
+      }
+      groups.push(new MetadataTemplateGroup(groupName, metadata));
+    }
+    return from(groups);
   }
 }
 
