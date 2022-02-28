@@ -1,0 +1,77 @@
+<form [formGroup]="templateForm">
+
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>1. Select Language</mat-card-title>
+            <mat-card-subtitle>Pick a programming language of your choice to display all available projects.
+            </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div formArrayName="languages">
+                <div *ngFor="let language of languageForms.controls; let i = index" [formGroupName]="i"
+                    class="inline-select">
+                    <mat-form-field appearance="fill">
+                        <mat-label>{{ languages[i].groupName }}</mat-label>
+                        <mat-select formControlName="entry">
+                            <mat-option>None</mat-option>
+                            <mat-option *ngFor="let language of languages[i].languages" [value]="language.key">
+                                {{ language.value }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>2. Select Project</mat-card-title>
+            <mat-card-subtitle>Pick a sample project based on a framework or toolset of choice.
+            </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div formArrayName="projects">
+                <div *ngFor="let project of projectForms.controls; let i = index" [formGroupName]="i"
+                    class="inline-select">
+                    <mat-form-field appearance="fill">
+                        <mat-label>{{ projects[i].groupName }}</mat-label>
+                        <mat-select formControlName="entry">
+                            <mat-option>None</mat-option>
+                            <mat-option *ngFor="let project of projects[i].projects" [value]="project.key">
+                                {{ project.value }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>3. Configure Optional Metadata</mat-card-title>
+            <mat-card-subtitle>Optional metadata allows to resolve placeholders already and get to a running application
+                more quickly.
+            </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div formArrayName="metadata" class="meta-holder">
+                <div *ngFor="let mf of metadataForms.controls; let i = index" [formGroupName]="i" class="meta-box">
+                    <h3>{{ metadata[i].groupName }}</h3>
+                    <div *ngFor="let field of metadata[i].fields">
+                        <mat-form-field appearance="fill">
+                            <mat-label>{{field.name}}</mat-label>
+                            <input matInput [formControlName]="field.name" />
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <div>
+        <button mat-raised-button color="primary">Package &amp; Download</button>
+    </div>
+
+</form>
