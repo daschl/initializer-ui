@@ -55,23 +55,89 @@ export class TemplateService {
 
   getMetadataGroups(value: any): Observable<MetadataTemplateGroup> {
     let fakeData = {
-      "credentials": [
-        { "name": "username", "type": "input" },
-      ],
-      "other": [
-        { "name": "groupId", "type": "input", "defaultValue": "com.example" },
-        { "name": "artifactId", "type": "input" },
+      "sections": [
+        {
+          "key": "couchbase",
+          "name": "Couchbase",
+          "parameters": [
+            {
+              "key": "couchbase.connectionString",
+              "name": "Connection String",
+              "defaultValue": "127.0.0.1"
+            },
+            {
+              "key": "couchbase.username",
+              "name": "Username",
+              "defaultValue": "Administrator"
+            }
+          ]
+        },
+
+        {
+          "key": "project",
+          "name": "Project",
+          "parameters": [
+            {
+              "key": "project.group",
+              "name": "Group",
+              "defaultValue": "com.example"
+            },
+            {
+              "key": "project.artifact",
+              "name": "Artifact",
+              "defaultValue": "hello-world"
+            },
+            {
+              "key": "project.name",
+              "name": "Name",
+              "defaultValue": "${project.artifact}"
+            },
+            {
+              "key": "project.package",
+              "name": "Package",
+              "defaultValue": "${project.group}.${project.artifact}"
+            },
+            {
+              "key": "project.javaVersion",
+              "name": "Java",
+              "type": "select",
+              "defaultValue": "1.8",
+              "options": [
+                {
+                  "key": "1.8",
+                  "name": "8"
+                },
+                {
+                  "key": "11",
+                  "name": "11"
+                },
+                {
+                  "key": "17",
+                  "name": "17"
+                }
+              ]
+            }
+          ]
+        }
       ]
     };
     let jsonIn = JSON.parse(JSON.stringify(fakeData))
 
     let groups: MetadataTemplateGroup[] = [];
-    for (let [groupName, meta] of Object.entries(jsonIn)) {
-      let metadata = [];
-      for (var m of meta as Array<any>) {
-        metadata.push(new MetadataTemplateField(m["name"], m["type"], m["defaultValue"]));
+    for (let section of jsonIn["sections"]) {
+      let groupKey = section["key"];
+      let groupName = section["name"];
+      let metadata: MetadataTemplateField[] = [];
+      for (let p of section["parameters"]) {
+        let options: MetadataTemplateOption[] = [];
+        if (p["options"]) {
+          for (let o of p["options"]) {
+            options.push(new MetadataTemplateOption(o["key"], o["name"]));
+          }
+        }
+        metadata.push(new MetadataTemplateField(p["key"], p["name"], options, p["type"], p["defaultValue"]));
       }
-      groups.push(new MetadataTemplateGroup(groupName, metadata));
+      groups.push(new MetadataTemplateGroup(groupKey, groupName, metadata));
     }
     return from(groups);
   }
@@ -119,22 +185,38 @@ export class ProjectTemplate {
 }
 
 export class MetadataTemplateGroup {
+  groupKey: string;
   groupName: string;
   fields: MetadataTemplateField[];
 
-  constructor(groupName: string, fields: MetadataTemplateField[]) {
+  constructor(groupKey: string, groupName: string, fields: MetadataTemplateField[]) {
+    this.groupKey = groupKey;
     this.groupName = groupName;
     this.fields = fields;
   }
 }
 
 export class MetadataTemplateField {
+  key: string;
   name: string;
-  type: string;
+  type?: string;
   defaultValue?: string;
-  constructor(name: string, type: string, defaultValue?: string) {
+  options: MetadataTemplateOption[];
+  constructor(key: string, name: string, options: MetadataTemplateOption[], type?: string, defaultValue?: string) {
+    this.key = key;
     this.name = name;
     this.type = type;
     this.defaultValue = defaultValue;
+    this.options = options;
+  }
+}
+
+export class MetadataTemplateOption {
+  key: string;
+  name: string;
+
+  constructor(key: string, name: string) {
+    this.key = key;
+    this.name = name;
   }
 }

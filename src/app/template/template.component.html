@@ -62,7 +62,18 @@
                     <div *ngFor="let field of metadata[i].fields">
                         <mat-form-field appearance="fill">
                             <mat-label>{{field.name}}</mat-label>
-                            <input matInput [formControlName]="field.name" />
+                            <div [ngSwitch]="field.type">
+                                <input *ngSwitchCase="'input'" matInput [formControlName]="field.name" />
+                                <input *ngSwitchDefault matInput [formControlName]="field.name" />
+                                <mat-select [formControlName]="field.name" [value]="field.defaultValue"
+                                    *ngSwitchCase="'select'">
+                                    <mat-option>None</mat-option>
+                                    <mat-option *ngFor="let option of field.options" [value]="option.key">
+                                        {{ option.name }}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+
                         </mat-form-field>
                     </div>
                 </div>
