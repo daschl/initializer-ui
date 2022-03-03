@@ -8,14 +8,13 @@
         </mat-card-header>
         <mat-card-content>
             <div formArrayName="languages">
-                <div *ngFor="let language of languageForms.controls; let i = index" [formGroupName]="i"
-                    class="inline-select">
+                <div *ngFor="let language of languages; let i = index" [formGroupName]="i" class="inline-select">
                     <mat-form-field appearance="fill">
-                        <mat-label>{{ languages[i].groupName }}</mat-label>
+                        <mat-label>{{ language.groupName }}</mat-label>
                         <mat-select formControlName="entry">
                             <mat-option>None</mat-option>
-                            <mat-option *ngFor="let language of languages[i].languages" [value]="language.key">
-                                {{ language.value }}
+                            <mat-option *ngFor="let l of language.languages" [value]="l.key">
+                                {{ l.value }}
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
@@ -32,14 +31,13 @@
         </mat-card-header>
         <mat-card-content>
             <div formArrayName="projects">
-                <div *ngFor="let project of projectForms.controls; let i = index" [formGroupName]="i"
-                    class="inline-select">
+                <div *ngFor="let project of projects; let i = index" [formGroupName]="i" class="inline-select">
                     <mat-form-field appearance="fill">
-                        <mat-label>{{ projects[i].groupName }}</mat-label>
+                        <!--<mat-label>{{ project.groupName }}</mat-label>-->
                         <mat-select formControlName="entry">
                             <mat-option>None</mat-option>
-                            <mat-option *ngFor="let project of projects[i].projects" [value]="project.key">
-                                {{ project.value }}
+                            <mat-option *ngFor="let p of project.projects" [value]="p.key">
+                                {{ p.value }}
                             </mat-option>
                         </mat-select>
                     </mat-form-field>

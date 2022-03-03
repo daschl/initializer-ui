@@ -1,37 +1,68 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TemplateService {
 
-  constructor(private http: HttpClient) { }
+  private loadedManifest: any;
+
+  constructor(private http: HttpClient) {
+
+  }
+
+  loadManifest(): Observable<any> {
+    let options = {
+      headers: new HttpHeaders({
+        'Access-Control-Allow-Origin': '*'
+      })
+    };
+    return this.http.get("http://localhost:8080/manifest.json", options).pipe(map(v => {
+      this.loadedManifest = v;
+      return v
+    }))
+  }
 
   getLanguageGroups(): Observable<LanguageTemplateGroup> {
-    let fakeData = {
-      "Server & Capella": [
-        { "key": "java", "value": "Java" },
-      ],
-      "Mobile": [
-        { "key": "c", "value": "C" }
-      ]
-    };
-    let jsonIn = JSON.parse(JSON.stringify(fakeData))
+    return this.loadManifest().pipe(mergeMap(v => {
+      let groups: LanguageTemplateGroup[] = [];
+      for (let langGroup of v["children"]) {
+        let groupKey = langGroup["path"];
+        let groupName = langGroup["name"];
 
-    let groups: LanguageTemplateGroup[] = [];
-    for (let [groupName, langs] of Object.entries(jsonIn)) {
-      let languages = [];
-      for (var lang of langs as Array<any>) {
-        languages.push(new LanguageTemplate(lang["key"], lang["value"]));
+        let languages: LanguageTemplate[] = [];
+        for (let lang of langGroup["children"]) {
+          languages.push(new LanguageTemplate(lang["path"], lang["name"]));
+        }
+        groups.push(new LanguageTemplateGroup(groupKey, groupName, languages));
       }
-      groups.push(new LanguageTemplateGroup(groupName, languages));
-    }
-    return from(groups);
+      return groups
+    }));
   }
 
   getProjectGroups(value: any): Observable<ProjectTemplateGroup> {
+    let langKey = value["entry"];
+
+    return this.loadManifest().pipe(mergeMap(v => {
+      let groups: ProjectTemplateGroup[] = [];
+      for (let langGroup of v["children"]) {
+        for (let lang of langGroup["children"]) {
+          if (lang["path"] == langKey) {
+            let projects: ProjectTemplate[] = [];
+            for (let proj of lang["children"]) {
+              projects.push(new ProjectTemplate(proj["path"], proj["name"]));
+            }
+            groups.push(new ProjectTemplateGroup("group", projects));
+          }
+        }
+      }
+      return groups
+    }));
+
+    /*console.log(langGroupKey);
     let fakeData = {
       "Getting Started": [
         { "key": "hello-world", "value": "Hello World" },
@@ -50,7 +81,7 @@ export class TemplateService {
       }
       groups.push(new ProjectTemplateGroup(groupName, projects));
     }
-    return from(groups);
+    return from(groups);*/
   }
 
   getMetadataGroups(value: any): Observable<MetadataTemplateGroup> {
@@ -145,10 +176,12 @@ export class TemplateService {
 
 
 export class LanguageTemplateGroup {
+  groupKey: string;
   groupName: string;
   languages: LanguageTemplate[];
 
-  constructor(groupName: string, languages: LanguageTemplate[]) {
+  constructor(groupKey: string, groupName: string, languages: LanguageTemplate[]) {
+    this.groupKey = groupKey;
     this.groupName = groupName;
     this.languages = languages;
   }

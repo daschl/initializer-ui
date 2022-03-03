@@ -14,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { HttpClientModule } from '@angular/common/http';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
-
+import { MatRadioModule } from '@angular/material/radio';
 @NgModule({
   declarations: [
     AppComponent,
@@ -33,6 +33,7 @@ import { MatCardModule } from '@angular/material/card';
     MatGridListModule,
     MatInputModule,
     MatCardModule,
+    MatRadioModule
   ],
   providers: [
   ],
