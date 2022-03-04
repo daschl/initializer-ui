@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
-import { LanguageTemplateGroup, MetadataTemplateGroup, ProjectTemplateGroup, TemplateService } from './template.service';
+import { LanguageTemplate, LanguageTemplateGroup, MetadataTemplateGroup, ProjectTemplateGroup, TemplateService } from './template.service';
 
 @Component({
   selector: 'app-template',
@@ -12,6 +12,9 @@ export class TemplateComponent implements OnInit {
   languages: LanguageTemplateGroup[] = [];
   projects: ProjectTemplateGroup[] = [];
   metadata: MetadataTemplateGroup[] = [];
+
+  activeLanugage?: any;
+  activeProject?: any;
 
   templateForm!: FormGroup;
 
@@ -30,11 +33,15 @@ export class TemplateComponent implements OnInit {
       for (let f of this.languageForms.controls) {
         if (f.dirty) {
           this.projects = [];
+          this.activeLanugage = f.value["entry"];
           this.templateService.getProjectGroups(f.value).subscribe({
             next: v => this.projects.push(v),
             complete: () => this.updateProjectForms(),
           });
           f.markAsPristine();
+
+          this.metadata = [];
+          this.updateMetadataForms();
         } else {
           f.reset({}, { emitEvent: false });
         }
@@ -45,7 +52,9 @@ export class TemplateComponent implements OnInit {
       for (let f of this.projectForms.controls) {
         if (f.dirty) {
           this.metadata = [];
-          this.templateService.getMetadataGroups(f.value).subscribe({
+          this.activeProject = f.value["entry"];
+          let path = this.buildActivePath();
+          this.templateService.getMetadataGroups(path).subscribe({
             next: v => this.metadata.push(v),
             complete: () => this.updateMetadataForms(),
           });
@@ -61,6 +70,15 @@ export class TemplateComponent implements OnInit {
       next: v => this.languages.push(v),
       complete: () => this.updateLanguageForms(),
     });
+  }
+
+  buildActivePath() {
+    let ap = this.activeProject;
+    if (!ap.startsWith('.')) {
+      ap = '.' + ap;
+    }
+    let res = (this.activeLanugage + ap).replaceAll(".", "/");
+    return res;
   }
 
   get languageForms() {
@@ -98,9 +116,28 @@ export class TemplateComponent implements OnInit {
     this.metadata.forEach(group => {
       let g: { [key: string]: any } = {};
       group.fields.forEach(field => {
-        g[field.name] = field.defaultValue;
+        g[field.key] = field.defaultValue;
       })
       this.metadataForms.push(this.fb.group(g));
+    });
+  }
+
+  initiateDownload() {
+    let params: any = {};
+
+    for (let groupIdx in this.metadataForms.value) {
+      let form = this.metadataForms.get(groupIdx);
+      Object.entries(form?.value).forEach(([key, value]) => {
+        params[key] = value;
+      });
+    }
+
+    this.templateService.runDownload(this.buildActivePath(), params).subscribe(data => {
+      var downloadURL = window.URL.createObjectURL(data);
+      var link = document.createElement('a');
+      link.href = downloadURL;
+      link.download = "couchbase-sample-project.zip";
+      link.click();
     });
   }
 

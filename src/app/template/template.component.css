@@ -27,4 +27,5 @@ div.submit button {
 div.submit button.primary {
     background-color: #4287D6;
     margin-right: 10px;
+    color: #fff;
 }

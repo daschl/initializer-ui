@@ -44,133 +44,72 @@ export class TemplateService {
   }
 
   getProjectGroups(value: any): Observable<ProjectTemplateGroup> {
-    let langKey = value["entry"];
+    let langKey = value["entry"].split(".")[1];
 
     return this.loadManifest().pipe(mergeMap(v => {
       let groups: ProjectTemplateGroup[] = [];
       for (let langGroup of v["children"]) {
         for (let lang of langGroup["children"]) {
           if (lang["path"] == langKey) {
-            let projects: ProjectTemplate[] = [];
-            for (let proj of lang["children"]) {
-              projects.push(new ProjectTemplate(proj["path"], proj["name"]));
+            if (lang["childSelectionLabel"] == "Project") {
+              let projects: ProjectTemplate[] = [];
+              for (let proj of lang["children"]) {
+                projects.push(new ProjectTemplate(proj["path"], proj["name"]));
+              }
+              groups.push(new ProjectTemplateGroup("", "", projects));
+            } else {
+              for (let projectGroup of lang["children"]) {
+                let projects: ProjectTemplate[] = [];
+                for (let proj of projectGroup["children"]) {
+                  projects.push(new ProjectTemplate(proj["path"], proj["name"]));
+                }
+                groups.push(new ProjectTemplateGroup(projectGroup["path"], projectGroup["name"], projects));
+              }
             }
-            groups.push(new ProjectTemplateGroup("group", projects));
           }
         }
       }
       return groups
     }));
-
-    /*console.log(langGroupKey);
-    let fakeData = {
-      "Getting Started": [
-        { "key": "hello-world", "value": "Hello World" },
-      ],
-      "Spring": [
-        { "key": "spring-boot", "value": "Spring Boot Sample" }
-      ]
-    };
-    let jsonIn = JSON.parse(JSON.stringify(fakeData))
-
-    let groups: ProjectTemplateGroup[] = [];
-    for (let [groupName, projs] of Object.entries(jsonIn)) {
-      let projects = [];
-      for (var project of projs as Array<any>) {
-        projects.push(new ProjectTemplate(project["key"], project["value"]));
-      }
-      groups.push(new ProjectTemplateGroup(groupName, projects));
-    }
-    return from(groups);*/
   }
 
-  getMetadataGroups(value: any): Observable<MetadataTemplateGroup> {
-    let fakeData = {
-      "sections": [
-        {
-          "key": "couchbase",
-          "name": "Couchbase",
-          "parameters": [
-            {
-              "key": "couchbase.connectionString",
-              "name": "Connection String",
-              "defaultValue": "127.0.0.1"
-            },
-            {
-              "key": "couchbase.username",
-              "name": "Username",
-              "defaultValue": "Administrator"
-            }
-          ]
-        },
-
-        {
-          "key": "project",
-          "name": "Project",
-          "parameters": [
-            {
-              "key": "project.group",
-              "name": "Group",
-              "defaultValue": "com.example"
-            },
-            {
-              "key": "project.artifact",
-              "name": "Artifact",
-              "defaultValue": "hello-world"
-            },
-            {
-              "key": "project.name",
-              "name": "Name",
-              "defaultValue": "${project.artifact}"
-            },
-            {
-              "key": "project.package",
-              "name": "Package",
-              "defaultValue": "${project.group}.${project.artifact}"
-            },
-            {
-              "key": "project.javaVersion",
-              "name": "Java",
-              "type": "select",
-              "defaultValue": "1.8",
-              "options": [
-                {
-                  "key": "1.8",
-                  "name": "8"
-                },
-                {
-                  "key": "11",
-                  "name": "11"
-                },
-                {
-                  "key": "17",
-                  "name": "17"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+  getMetadataGroups(path: string): Observable<MetadataTemplateGroup> {
+    let options = {
+      headers: new HttpHeaders({
+        'Access-Control-Allow-Origin': '*'
+      })
     };
-    let jsonIn = JSON.parse(JSON.stringify(fakeData))
-
-    let groups: MetadataTemplateGroup[] = [];
-    for (let section of jsonIn["sections"]) {
-      let groupKey = section["key"];
-      let groupName = section["name"];
-      let metadata: MetadataTemplateField[] = [];
-      for (let p of section["parameters"]) {
-        let options: MetadataTemplateOption[] = [];
-        if (p["options"]) {
-          for (let o of p["options"]) {
-            options.push(new MetadataTemplateOption(o["key"], o["name"]));
+    return this.http.get<any>("http://localhost:8080/project/" + path, options).pipe(mergeMap(v => {
+      let groups: MetadataTemplateGroup[] = [];
+      for (let section of v["sections"]) {
+        let groupKey = section["key"];
+        let groupName = section["name"];
+        let metadata: MetadataTemplateField[] = [];
+        for (let p of section["parameters"]) {
+          let options: MetadataTemplateOption[] = [];
+          if (p["options"]) {
+            for (let o of p["options"]) {
+              options.push(new MetadataTemplateOption(o["key"], o["name"]));
+            }
           }
+          metadata.push(new MetadataTemplateField(p["key"], p["name"], options, p["type"], p["defaultValue"]));
         }
-        metadata.push(new MetadataTemplateField(p["key"], p["name"], options, p["type"], p["defaultValue"]));
+        groups.push(new MetadataTemplateGroup(groupKey, groupName, metadata));
       }
-      groups.push(new MetadataTemplateGroup(groupKey, groupName, metadata));
-    }
-    return from(groups);
+      return groups;
+    }))
+  }
+
+  runDownload(path: string, params: any): Observable<Blob> {
+    let options = {
+      headers: new HttpHeaders({
+        'Access-Control-Allow-Origin': '*'
+      }),
+      responseType: 'blob' as 'json',
+      params: params
+    };
+
+    return this.http.post<Blob>("http://localhost:8080/download/" + path, null, options);
   }
 }
 
@@ -198,10 +137,12 @@ export class LanguageTemplate {
 }
 
 export class ProjectTemplateGroup {
+  groupKey: string;
   groupName: string;
   projects: ProjectTemplate[];
 
-  constructor(groupName: string, projects: ProjectTemplate[]) {
+  constructor(groupKey: string, groupName: string, projects: ProjectTemplate[]) {
+    this.groupKey = groupKey;
     this.groupName = groupName;
     this.projects = projects;
   }
